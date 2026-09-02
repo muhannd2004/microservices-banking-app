@@ -6,7 +6,7 @@ CREATE SEQUENCE card_number_seq
 
 CREATE TABLE IF NOT EXISTS card (
     card_id  BIGSERIAL     PRIMARY KEY,
-    card_number
+    card_number  BIGINT        NOT NULL,
     token_id     VARCHAR(36)   NOT NULL,
     account_id   BIGINT        NOT NULL,
     card_type    VARCHAR(20)   NOT NULL,

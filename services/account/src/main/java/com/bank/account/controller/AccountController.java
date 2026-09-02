@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/accounts")
+@RequestMapping("/api/account")
 @RequiredArgsConstructor
 @Validated
 @Tag(name = "Accounts", description = "CRUD operations for bank accounts")

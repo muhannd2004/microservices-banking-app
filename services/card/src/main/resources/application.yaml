@@ -1,8 +1,8 @@
 spring:
   application:
-    name: account
+    name: cards
   datasource:
-    url: ${DB_URL_ACCOUNT}
+    url: ${DB_URL_CARD}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
   jpa:
@@ -14,7 +14,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:9090/realms/bank-realm}
+          issuer-uri: ${KEYCLOAK_ISSUER_URI}
 
 server:
   port: 8081
@@ -32,10 +32,12 @@ management:
       probability: 1.0
   otlp:
     tracing:
-      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://tempo:4318/v1/traces}
 
 logging:
   pattern:
-    level: "%5p [account,%X{traceId:-},%X{spanId:-}]"
+    level: "%5p [${spring.application.name},%X{traceId:-},%X{spanId:-}]"
 
-
+card:
+  validity:
+    years: ${CARD_VALIDITY_YEARS}

@@ -3,16 +3,20 @@ package com.bank.account.service;
 import com.bank.account.dto.AccountDto;
 import com.bank.account.dto.AccountRequest;
 import com.bank.account.dto.AccountResponse;
+import com.bank.account.dto.BalanceDto;
+import com.bank.account.exception.InsufficientBalanceException;
 import com.bank.account.exception.ResourceNotFoundException;
 import com.bank.account.mapper.AccountMapper;
 import com.bank.account.model.Account;
 import com.bank.account.model.Customer;
 import com.bank.account.repository.AccountRepository;
 import com.bank.account.repository.CustomerRepository;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -32,6 +36,7 @@ public class AccountService {
         account.setAccountType(request.getAccountType().name());
         account.setBranchAddress(request.getBranchAddress());
         account.setCommunicationSw(true);
+        account.setBalance(new BigDecimal(0));
         return accountMapper.toDto(accountRepository.save(account));
     }
 
@@ -61,6 +66,34 @@ public class AccountService {
     public AccountResponse fetchAccount(String tokenId, Long accountNumber) {
         Customer customer = findCustomerByToken(tokenId);
         return accountMapper.toDto(findOwnedAccount(accountNumber, customer.getId()));
+    }
+
+    @Transactional
+    public BalanceDto deposit(String tokenId, Long accountNumber, BigDecimal balance) {
+        Customer customer = findCustomerByToken(tokenId);
+        Account account = findOwnedAccount(accountNumber, customer.getId());
+
+        account.setBalance(account.getBalance().add(balance));
+        return new BalanceDto(account.getBalance());
+    }
+
+    @Transactional
+    public BalanceDto withdraw(String tokenId, Long accountNumber, BigDecimal balance) {
+        Customer customer = findCustomerByToken(tokenId);
+        Account account = findOwnedAccount(accountNumber, customer.getId());
+
+        if(account.getBalance().compareTo(balance) < 0)
+            throw new InsufficientBalanceException("Transaction failed: Insufficient funds.");
+
+        account.setBalance(account.getBalance().subtract(balance));
+        return new BalanceDto(account.getBalance());
+    }
+
+    public BalanceDto checkBalance(String tokenId, Long accountNumber) {
+        Customer customer = findCustomerByToken(tokenId);
+        Account account = findOwnedAccount(accountNumber, customer.getId());
+
+        return new BalanceDto(account.getBalance());
     }
 
     private Customer findCustomerByToken(String tokenId) {

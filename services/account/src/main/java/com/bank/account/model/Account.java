@@ -1,7 +1,10 @@
 package com.bank.account.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.*;
+
+import java.math.BigDecimal;
 
 @Entity
 @Getter @Setter @ToString
@@ -24,4 +27,8 @@ public class Account extends BaseEntity {
 
     @Column(name = "communication_sw")
     private Boolean communicationSw;
+
+    @PositiveOrZero(message = "Balance cannot be negative")
+    @Column(nullable = false, precision = 15, scale = 2)
+    private BigDecimal balance;
 }

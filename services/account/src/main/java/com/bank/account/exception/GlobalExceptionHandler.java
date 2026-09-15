@@ -35,6 +35,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                         HttpStatus.NOT_FOUND, ex.getMessage(), LocalDateTime.now()));
     }
 
+    @ExceptionHandler(InsufficientBalanceException.class)
+    public ResponseEntity<ErrorResponseDto> handleInsufficientBalance(
+            InsufficientBalanceException ex, WebRequest request) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponseDto(request.getDescription(false),
+                        HttpStatus.BAD_REQUEST, ex.getMessage(), LocalDateTime.now()));
+    }
+
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex, HttpHeaders headers,
@@ -42,7 +50,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         Map<String, String> errors = ex.getBindingResult().getFieldErrors().stream()
                 .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage,
                         (existing, replacement) -> existing));
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponseDto(request.getDescription(false),
+                        HttpStatus.BAD_REQUEST, ex.getMessage(), LocalDateTime.now()));
     }
 
     @ExceptionHandler(Exception.class)

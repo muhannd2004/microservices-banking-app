@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS account (
     account_type   VARCHAR(50)  NOT NULL,
     branch_address VARCHAR(200) NOT NULL,
     communication_sw BOOLEAN    DEFAULT TRUE,
+    balance        NUMERIC(15,2) NOT NULL,
     created_at     TIMESTAMP    NOT NULL,
     created_by     VARCHAR(50)  NOT NULL,
     updated_at     TIMESTAMP,

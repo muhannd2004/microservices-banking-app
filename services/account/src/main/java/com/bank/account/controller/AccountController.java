@@ -3,6 +3,7 @@ package com.bank.account.controller;
 import com.bank.account.dto.AccountDto;
 import com.bank.account.dto.AccountRequest;
 import com.bank.account.dto.AccountResponse;
+import com.bank.account.dto.BalanceDto;
 import com.bank.account.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -66,5 +67,34 @@ public class AccountController {
             @PathVariable Long accountNumber
     ){
         return ResponseEntity.ok(accountService.fetchAccount(authentication.getName(), accountNumber));
+    }
+
+    @PostMapping("/deposit/{accountNumber}")
+    @Operation(summary = "Deposit money to user's account")
+    public ResponseEntity<BalanceDto> deposit(
+            Authentication authentication,
+            @PathVariable Long accountNumber,
+            @Valid @RequestBody BalanceDto balanceDto
+    ){
+        return ResponseEntity.accepted().body(accountService.deposit(authentication.getName(), accountNumber, balanceDto.getBalance()));
+    }
+
+    @PostMapping("/withdraw/{accountNumber}")
+    @Operation(summary = "Withdraw money from user's account")
+    public ResponseEntity<BalanceDto> withdraw(
+            Authentication authentication,
+            @PathVariable Long accountNumber,
+            @Valid @RequestBody BalanceDto balanceDto
+    ){
+        return ResponseEntity.accepted().body(accountService.withdraw(authentication.getName(), accountNumber, balanceDto.getBalance()));
+    }
+
+    @GetMapping("/balance/{accountNumber}")
+    @Operation(summary = "check user's account balance")
+    public ResponseEntity<BalanceDto> checkBalance(
+            Authentication authentication,
+            @PathVariable Long accountNumber
+    ){
+        return ResponseEntity.ok(accountService.checkBalance(authentication.getName(), accountNumber));
     }
 }

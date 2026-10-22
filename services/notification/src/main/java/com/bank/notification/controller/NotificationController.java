@@ -24,6 +24,6 @@ public class NotificationController {
     @PostMapping("/email")
     @Operation(summary = "Send an Email Notification to a user")
     public void send(@Valid @RequestBody EmailDto emailDto){
-        notificationService.sendEmailNotification(emailDto.getToEmail(), emailDto.getSubject(), emailDto.getMessage());
+        notificationService.sendEmailNotification(emailDto);
     }
 }

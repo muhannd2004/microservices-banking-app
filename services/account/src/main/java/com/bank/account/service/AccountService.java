@@ -1,9 +1,6 @@
 package com.bank.account.service;
 
-import com.bank.account.dto.AccountDto;
-import com.bank.account.dto.AccountRequest;
-import com.bank.account.dto.AccountResponse;
-import com.bank.account.dto.BalanceDto;
+import com.bank.account.dto.*;
 import com.bank.account.exception.InsufficientBalanceException;
 import com.bank.account.exception.ResourceNotFoundException;
 import com.bank.account.mapper.AccountMapper;
@@ -11,12 +8,14 @@ import com.bank.account.model.Account;
 import com.bank.account.model.Customer;
 import com.bank.account.repository.AccountRepository;
 import com.bank.account.repository.CustomerRepository;
-import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -26,7 +25,9 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final CustomerRepository customerRepository;
     private final AccountMapper accountMapper;
+    private final KafkaTemplate<String, EmailDto> kafkaTemplate;
 
+    private final String topic = "account-notifications";
 
     @Transactional
     public AccountResponse createAccount(String tokenId, AccountRequest request) {
@@ -74,6 +75,19 @@ public class AccountService {
         Account account = findOwnedAccount(accountNumber, customer.getId());
 
         account.setBalance(account.getBalance().add(balance));
+
+        String dateTime = LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        String message = "There Has been a Deposit to your account at " + dateTime + " by: " + balance + " $";
+        String subject = "Deposit Happened";
+        EmailDto emailDto = new EmailDto();
+        emailDto.setToEmail(customer.getEmail());
+        emailDto.setMessage(message);
+        emailDto.setSubject(subject);
+
+        kafkaTemplate.send(topic, emailDto);
+
         return new BalanceDto(account.getBalance());
     }
 
@@ -86,6 +100,19 @@ public class AccountService {
             throw new InsufficientBalanceException("Transaction failed: Insufficient funds.");
 
         account.setBalance(account.getBalance().subtract(balance));
+
+        String dateTime = LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        String message = "There Has been a Withdraw from your account at " + dateTime + " by: " + balance + " $";
+        String subject = "Withdraw Happened";
+        EmailDto emailDto = new EmailDto();
+        emailDto.setToEmail(customer.getEmail());
+        emailDto.setMessage(message);
+        emailDto.setSubject(subject);
+
+        kafkaTemplate.send(topic, emailDto);
+
         return new BalanceDto(account.getBalance());
     }
 
